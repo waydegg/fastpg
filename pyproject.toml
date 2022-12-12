@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fastpg"
+version = "0.0.1"
+description = "A fast Postgres client library for Python"
+readme = "README.md"
+requires-python = ">=3.10.4"
+license = { text = 'MIT' }
+authors = [{ name = "Wayde Gilliam", email = "waydegilliam@gmail.com" }]
+keywords = ["python", "postgres", "asyncio", "asyncpg"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Database :: Front-Ends",
+]
+dependencies = ["asyncpg==0.27.0"]
+
+[project.urls]
+Homepage = "https://github.com/waydegg/fastpg"
+Source = "https://github.com/waydegg/fastpg"
+
+[tool.hatch.build]
+only-packages = true
