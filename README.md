@@ -5,7 +5,7 @@
 A fast Postgres client library for Python.
 
 The only dependency for **fastpg** is [asyncpg](https://github.com/MagicStack/asyncpg),
-and the api wrapper is very similar to the api provieded by the
+and the api wrapper is very similar to the api provided by the
 [databases](https://github.com/encode/databases) package.
 
 ## Installation
