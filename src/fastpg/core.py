@@ -1,7 +1,8 @@
 import asyncio
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
-from typing import Any, Iterable, Iterator, List, Optional, Tuple
+from typing import (Any, Dict, Iterable, Iterator, List, Mapping, Optional,
+                    Sequence, Tuple, overload)
 
 import asyncpg
 from asyncpg.pgproto.pgproto import UUID
@@ -127,7 +128,7 @@ class Database:
         self,
         table_name: str,
         *,
-        records: List[Iterable],
+        records: Sequence[Sequence],
         columns: Optional[List[str]] = None,
     ):
         assert self._pool is not None, "Database is not connected"
@@ -159,7 +160,21 @@ class Connection:
         compiled_query, ordered_values = compile_query(query, values)
         return await self._connection.fetchval(compiled_query, *ordered_values)
 
-    async def fetch_one(self, query: str, values: Optional[dict] = None):
+    # @overload
+    # async def fetch_one(
+    #     self, query: str, values: Optional[dict] = None, cast: Mapping = Dict
+    # ) -> Record:
+    #     ...
+    #
+    # @overload
+    # async def fetch_one(
+    #     self, query: str, values: Optional[dict] = None, cast: None = None
+    # ) -> Record | None:
+    #     ...
+
+    async def fetch_one(
+        self, query: str, values: Optional[dict] = None, cast: Mapping | None = None
+    ):
         assert self._connection is not None, "Connection is not acquired"
         compiled_query, ordered_values = compile_query(query, values)
         rec = await self._connection.fetchrow(compiled_query, *ordered_values)
@@ -177,7 +192,7 @@ class Connection:
         self,
         table_name: str,
         *,
-        records: List[Iterable],
+        records: Sequence[Sequence],
         columns: Optional[List[str]] = None,
     ):
         assert self._connection is not None, "Connection is not acquired"
