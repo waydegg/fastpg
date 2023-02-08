@@ -192,7 +192,7 @@ class Connection:
         self,
         table_name: str,
         *,
-        records: Sequence[Sequence],
+        records: Sequence[Sequence[Any]],
         columns: Optional[List[str]] = None,
     ):
         assert self._connection is not None, "Connection is not acquired"

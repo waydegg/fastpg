@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 .PHONY: build
 build:
 	hatch build
@@ -13,3 +15,6 @@ publish:
 .PHONY: clean
 clean:
 	rm -rf dist/*
+
+.PHONY: all
+all: clean build publish
