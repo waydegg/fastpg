@@ -1,8 +1,7 @@
 import json
 import re
-from datetime import datetime
 from enum import Enum
-from typing import List, Tuple
+from typing import Any, List
 from uuid import UUID
 
 
@@ -17,7 +16,7 @@ def compile_value(value):
         return value
 
 
-def compile_query(query, values: dict | List[dict] | None = None):
+def compile_query(query: str, values: dict | List[dict] | None = None):
 
     if type(values) is None:
         return query, tuple()
