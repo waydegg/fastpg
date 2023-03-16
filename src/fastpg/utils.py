@@ -4,9 +4,11 @@ from enum import Enum
 from typing import Any, List
 from uuid import UUID
 
+from ipdb import set_trace
+
 
 def compile_value(value):
-    if isinstance(value, (dict, list)):
+    if isinstance(value, dict):
         return json.dumps(value)
     elif isinstance(value, UUID):
         return str(value)
