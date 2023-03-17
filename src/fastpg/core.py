@@ -49,7 +49,23 @@ class Record(Mapping):
 
 
 class Database:
-    def __init__(self, dsn: str, *, force_rollback: bool = False):
+    def __init__(
+        self,
+        dsn: str | None = None,
+        *,
+        user: str | None = None,
+        password: str | None = None,
+        host: str | None = None,
+        port: int | None = None,
+        database: str | None = None,
+        force_rollback: bool = False,
+    ):
+        if dsn == None:
+            assert user is not None, "Missing user (no DSN provided)"
+            assert password is not None, "Missing password (no DSN provided)"
+            assert host is not None, "Missing host (no DSN provided)"
+            assert port is not None, "Missing port (no DSN provided)"
+            dsn = f"postgresql://{user}:{password}@{host}:{port}/{database}"
         self.dsn = dsn
 
         self._force_rollback = force_rollback
