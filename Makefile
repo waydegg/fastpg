@@ -16,5 +16,9 @@ publish:
 clean:
 	rm -rf dist/*
 
+.PHONY: lint
+lint:
+	ruff check --fix ./src
+
 .PHONY: all
-all: clean build publish
+all: clean lint build publish

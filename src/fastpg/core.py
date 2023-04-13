@@ -1,8 +1,7 @@
 import asyncio
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
-from typing import (Any, Dict, Iterable, Iterator, List, Mapping, Optional,
-                    Sequence, Tuple, overload)
+from typing import Any, Iterator, List, Optional, Sequence, Tuple
 
 import asyncpg
 from asyncpg.pgproto.pgproto import UUID
@@ -38,7 +37,7 @@ class Record(Mapping):
     def items(self) -> List[Tuple[str, Any]]:
         return list(zip(self.keys(), self.values()))
 
-    def __len__(self) -> int:  # type: ignore
+    def __len__(self) -> int:
         return len(self._rec)
 
     def __getitem__(self, key: Any) -> Any:
@@ -59,14 +58,16 @@ class Database:
         port: int | None = None,
         database: str | None = None,
         force_rollback: bool = False,
+        **kwargs,
     ):
-        if dsn == None:
+        if dsn is None:
             assert user is not None, "Missing user (no DSN provided)"
             assert password is not None, "Missing password (no DSN provided)"
             assert host is not None, "Missing host (no DSN provided)"
             assert port is not None, "Missing port (no DSN provided)"
             dsn = f"postgresql://{user}:{password}@{host}:{port}/{database}"
         self.dsn = dsn
+        self.kwargs = kwargs
 
         self._force_rollback = force_rollback
 
@@ -76,11 +77,11 @@ class Database:
     async def connect(self):
         if self._force_rollback:
             assert self._global_connection is None, "Database already connected"
-            self._global_connection = await asyncpg.connect(self.dsn)
+            self._global_connection = await asyncpg.connect(self.dsn, **self.kwargs)
             return
 
         assert self._pool is None, "Database already connected"
-        self._pool = await asyncpg.create_pool(self.dsn)
+        self._pool = await asyncpg.create_pool(self.dsn, **self.kwargs)
 
     async def disconnect(self, timeout: float = 30):
         if self._force_rollback:
