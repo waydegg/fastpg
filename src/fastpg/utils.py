@@ -5,7 +5,6 @@ from typing import List
 from uuid import UUID
 
 
-
 def compile_value(value):
     if isinstance(value, dict):
         return json.dumps(value)
@@ -18,7 +17,6 @@ def compile_value(value):
 
 
 def compile_query(query: str, values: dict | List[dict] | None = None):
-
     if type(values) is None:
         return query, tuple()
 

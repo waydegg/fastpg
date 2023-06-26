@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Mapping
 from contextlib import asynccontextmanager
-from typing import Any, Iterator, List, Optional, Sequence, Tuple
+from typing import Any, Iterator, List, Optional, Sequence, Tuple, cast
 
 import asyncpg
 from asyncpg.pgproto.pgproto import UUID
@@ -72,7 +72,7 @@ class Database:
         self._force_rollback = force_rollback
 
         self._pool: asyncpg.Pool | None = None
-        self._global_connection: Connection | None = None
+        self._global_connection: asyncpg.Connection | None = None
 
     async def connect(self):
         if self._force_rollback:
@@ -101,7 +101,8 @@ class Database:
     async def connection(self):
         if self._force_rollback:
             assert self._global_connection is not None, "Database is not connected"
-            conn = Connection(self._global_connection)
+            conn = Connection(self.dsn)
+            conn._connection = self._global_connection
             async with conn.transaction(force_rollback=True):
                 try:
                     yield conn
@@ -110,7 +111,8 @@ class Database:
 
         assert self._pool is not None, "Database is not connected"
         _conn = await self._pool.acquire()
-        conn = Connection(_conn)
+        conn = Connection(self.dsn)
+        conn._connection = _conn
         try:
             yield conn
         finally:
@@ -156,11 +158,39 @@ class Database:
 
 
 class Connection:
-    def __init__(self, connection):
-        self._connection = connection
+    def __init__(
+        self,
+        dsn: str | None = None,
+        *,
+        user: str | None = None,
+        password: str | None = None,
+        host: str | None = None,
+        port: int | None = None,
+        database: str | None = None,
+    ):
+        if dsn is None:
+            assert user is not None, "Missing user (no DSN provided)"
+            assert password is not None, "Missing password (no DSN provided)"
+            assert host is not None, "Missing host (no DSN provided)"
+            assert port is not None, "Missing port (no DSN provided)"
+            dsn = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+        self.dsn = dsn
+        self._connection: asyncpg.Connection | None = None
+
+    async def connect(self):
+        assert self._connection is None, "Connection already connected"
+        self._connection = cast(asyncpg.Connection, await asyncpg.connect(self.dsn))
 
     async def close(self, *, timeout: float | None = None):
+        assert self._connection is not None, "Connection is not connected"
         await self._connection.close(timeout=timeout)
+
+    async def __aenter__(self):
+        await self.connect()
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
 
     async def execute(self, query: str, values: Optional[dict] = None):
         assert self._connection is not None, "Connection is not acquired"
@@ -221,6 +251,7 @@ class Connection:
 
     @asynccontextmanager
     async def transaction(self, *, force_rollback: bool = False):
+        assert self._connection is not None, "Connection is not connected"
         transaction = self._connection.transaction()
         await transaction.start()
         try:
